@@ -8,15 +8,15 @@ namespace OuterWildsAtHome
     {
         private void Start()
         {
+            if (ModHelper.Interaction.ModExists("MegaPiggy.OWRichPresence"))
+            {
+                ModHelper.Console.WriteLine("Please install or update the Discord Rich Presence mod: https://outerwildsmods.com/mods/discordrichpresence owmods://install-mod/MegaPiggy.OWRichPresence", MessageType.Error);
+                return;
+            }
+
             var richPresence = ModHelper.Interaction.TryGetModApi<IRichPresenceAPI>("MegaPiggy.OWRichPresence");
-            if (richPresence == null)
-            {
-                ModHelper.Console.WriteLine("Please install or update the Discord Rich Presence mod: https://outerwildsmods.com/mods/discordrichpresence owmods://install-mod/MegaPiggy.OWRichPresence");
-            }
-            else
-            {
-                richPresence.RegisterHandler(StatusHandler);
-            }
+            richPresence.RegisterHandler(StatusHandler);
+            ModHelper.Console.WriteLine("Registered handler", MessageType.Debug);
         }
 
         private void StatusHandler(string details, string largeImageKey, string largeImageText) =>
