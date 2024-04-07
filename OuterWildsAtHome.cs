@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Net.Http;
-using System.Net.Http.Json;
+using Newtonsoft.Json;
+using System.Text;
 using OWML.Common;
 using OWML.ModHelper;
 using OWRichPresence.API;
+using System.Threading.Tasks;
 
 namespace OuterWildsAtHome
 {
@@ -46,7 +48,12 @@ namespace OuterWildsAtHome
         private void StatusHandler(string details, string largeImageKey, string largeImageText)
         {
             ModHelper.Console.WriteLine($"details: {details}; largeImageKey: {largeImageKey}; largeImageText: {largeImageText};");
-            client.PostAsJsonAsync("/", new
+            Task.Run(async () => { await PostAsync(details, largeImageKey, largeImageText); });
+        }
+
+        private async Task PostAsync(string details, string largeImageKey, string largeImageText)
+        {
+            var data = JsonConvert.SerializeObject(new
             {
                 state = largeImageText,
                 attributes = new
@@ -55,6 +62,13 @@ namespace OuterWildsAtHome
                     icon = largeImageKey,
                 }
             });
+            using StringContent jsonContent = new(data, Encoding.UTF8, "application/json");
+            using HttpResponseMessage response = await client.PostAsync("/", jsonContent);
+
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            ModHelper.Console.WriteLine(jsonResponse);
         }
     }
 }
