@@ -45,10 +45,14 @@ namespace OuterWildsAtHome
             ModHelper.Console.WriteLine($"details: {details}; largeImageKey: {largeImageKey}; largeImageText: {largeImageText};");
             StartCoroutine(SendUpdate(details, largeImageKey, largeImageText));
         }
+        private void OnApplicationQuit()
+        {
+            StartCoroutine(SendUpdate("not playing", "", ""));
+        }
 
         IEnumerator SendUpdate(string details, string largeImageKey, string largeImageText)
         {
-            var data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+            var obj = new
             {
                 state = largeImageText,
                 attributes = new
@@ -56,7 +60,9 @@ namespace OuterWildsAtHome
                     activity = details,
                     icon = largeImageKey,
                 }
-            }));
+            };
+
+            var data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj));
 
             var uploader = new UploadHandlerRaw(data)
             {
