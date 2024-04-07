@@ -1,17 +1,15 @@
-﻿using System;
-using System.Net.Http;
-using Newtonsoft.Json;
-using System.Text;
+﻿using Newtonsoft.Json;
 using OWML.Common;
 using OWML.ModHelper;
 using OWRichPresence.API;
-using System.Threading.Tasks;
+using UnityEngine.Networking;
+using System.Collections;
 
 namespace OuterWildsAtHome
 {
     public class OuterWildsAtHome : ModBehaviour
     {
-        private static readonly HttpClient client = new();
+        private string url, token, sensor;
 
         private void Start()
         {
@@ -31,27 +29,23 @@ namespace OuterWildsAtHome
         }
         public override void Configure(IModConfig config)
         {
-            ModHelper.Console.WriteLine("SWEETPOTATO configure called");
-
-            var url = ModHelper.Config.GetSettingsValue<string>("Home Assistant URL");
-            var token = ModHelper.Config.GetSettingsValue<string>("Home Assistant long-lived access token");
-            var sensor = ModHelper.Config.GetSettingsValue<string>("Home Assistant entity ID");
-
+            url = ModHelper.Config.GetSettingsValue<string>("Home Assistant URL");
             if (!url.EndsWith("/"))
             {
                 url += "/";
             }
-            client.BaseAddress = new Uri($"{url}api/states/{sensor}");
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            token = ModHelper.Config.GetSettingsValue<string>("Home Assistant long-lived access token");
+            sensor = ModHelper.Config.GetSettingsValue<string>("Home Assistant entity ID");
         }
 
         private void StatusHandler(string details, string largeImageKey, string largeImageText)
         {
             ModHelper.Console.WriteLine($"details: {details}; largeImageKey: {largeImageKey}; largeImageText: {largeImageText};");
-            Task.Run(async () => { await PostAsync(details, largeImageKey, largeImageText); });
+            StartCoroutine(SendUpdate(details, largeImageKey, largeImageText));
         }
 
-        private async Task PostAsync(string details, string largeImageKey, string largeImageText)
+        IEnumerator SendUpdate(string details, string largeImageKey, string largeImageText)
         {
             var data = JsonConvert.SerializeObject(new
             {
@@ -62,13 +56,23 @@ namespace OuterWildsAtHome
                     icon = largeImageKey,
                 }
             });
-            using StringContent jsonContent = new(data, Encoding.UTF8, "application/json");
-            using HttpResponseMessage response = await client.PostAsync("/", jsonContent);
 
-            response.EnsureSuccessStatusCode();
+            UnityWebRequest www = new UnityWebRequest($"{url}api/states/{sensor}");
+            www.SetRequestHeader("Authorization", $"Bearer {token}");
+            www.SetRequestHeader("Content-Type", "application/json");
+            www.SetRequestHeader("Accept", "application/json");
+            www.downloadHandler = new DownloadHandlerBuffer();
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            ModHelper.Console.WriteLine(jsonResponse);
+            yield return www.SendWebRequest();
+
+            if (www.responseCode == 200 || www.responseCode == 201)
+            {
+                ModHelper.Console.WriteLine(www.downloadHandler.text);
+            }
+            else
+            {
+                ModHelper.Console.WriteLine(www.downloadHandler.text, MessageType.Error);
+            }
         }
     }
 }
