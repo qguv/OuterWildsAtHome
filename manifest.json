@@ -6,5 +6,5 @@
   "uniqueName": "qguv.OuterWildsAtHome",
   "version": "0.1.0",
   "owmlVersion": "2.9.8",
-  "dependencies": []
+  "dependencies": [ "MegaPiggy.OWRichPresence" ]
 }
