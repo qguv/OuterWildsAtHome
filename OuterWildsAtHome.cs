@@ -4,6 +4,7 @@ using OWML.ModHelper;
 using OWRichPresence.API;
 using UnityEngine.Networking;
 using System.Collections;
+using System.Text;
 
 namespace OuterWildsAtHome
 {
@@ -47,7 +48,7 @@ namespace OuterWildsAtHome
 
         IEnumerator SendUpdate(string details, string largeImageKey, string largeImageText)
         {
-            var data = JsonConvert.SerializeObject(new
+            var data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
             {
                 state = largeImageText,
                 attributes = new
@@ -55,13 +56,22 @@ namespace OuterWildsAtHome
                     activity = details,
                     icon = largeImageKey,
                 }
-            });
+            }));
 
-            UnityWebRequest www = new UnityWebRequest($"{url}api/states/{sensor}");
+            var uploader = new UploadHandlerRaw(data)
+            {
+                contentType = "application/json"
+            };
+
+            var www = new UnityWebRequest($"{url}api/states/{sensor}")
+            {
+                method = UnityWebRequest.kHttpVerbPOST,
+                downloadHandler = new DownloadHandlerBuffer(),
+                uploadHandler = uploader,
+            };
             www.SetRequestHeader("Authorization", $"Bearer {token}");
             www.SetRequestHeader("Content-Type", "application/json");
             www.SetRequestHeader("Accept", "application/json");
-            www.downloadHandler = new DownloadHandlerBuffer();
 
             yield return www.SendWebRequest();
 
