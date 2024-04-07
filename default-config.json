@@ -1,4 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/config_schema.json",
-  "enabled": true
+    "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/config_schema.json",
+    "enabled": true,
+    "settings": {
+        "Home Assistant URL": "http://homeassistant.local:8123",
+        "Home Assistant long-lived access token": "",
+        "Home Assistant entity ID": "sensor.outer_wilds"
+    }
 }
