@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/manifest_schema.json",
   "filename": "OuterWildsAtHome.dll",
   "author": "qguv",
-  "name": "OuterWildsAtHome",
+  "name": "Outer Wilds at Home",
   "uniqueName": "qguv.OuterWildsAtHome",
   "version": "0.1.0",
   "owmlVersion": "2.9.8",
